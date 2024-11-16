@@ -18,7 +18,7 @@ fi
 # Install CTF Tools
 echo "Installing CTF tools..."
 sudo apt update
-sudo apt install -y seclists steghide pspy enum4linux zaproxy stegcracker peass rubygems
+sudo apt install -y seclists steghide pspy enum4linux zaproxy stegcracker peass rubygems amass
 
 # Install RubyGem Tool
 echo "Installing haiti-hash gem..."
