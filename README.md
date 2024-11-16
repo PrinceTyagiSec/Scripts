@@ -1,14 +1,7 @@
-# 1. Download common.py
+# Installation for basic_install.sh
+Quickly set up and run the basic_install.sh script by following these steps:
 ```bash
-wget https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/common.py
-```
-
-# 2. Give executable Permission.
-```bash
-chmod +x common.py
-```
-
-# 3. copy to /usr/bin
-```bash
-cp common.py /usr/bin
+sudo wget https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/basic_install.sh
+sudo chmod +x basic_install.sh
+./basic_install.sh
 ```
