@@ -1,6 +1,6 @@
 # 1. Download common.py
 ```bash
-wget
+wget https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/common.py
 ```
 
 # 2. Give executable Permission.
