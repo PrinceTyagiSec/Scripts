@@ -14,15 +14,6 @@ if ! echo $PATH | grep -q "$HOME/go/bin"; then
     export PATH="$HOME/go/bin:$PATH"
 fi
 
-# Ensure PostgreSQL is running
-echo "Ensuring PostgreSQL is running..."
-sudo systemctl start postgresql || sudo service postgresql start
-
-# Fix PostgreSQL collation version issues
-echo "Fixing PostgreSQL collation version issues..."
-sudo -u postgres psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION;" || true
-sudo -u postgres psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION;" || true
-
 # Check for Go installation
 if ! command -v go &>/dev/null; then
     echo "Go not found. Installing Go..."
@@ -159,42 +150,11 @@ else
     echo "Kerbrute is already installed."
 fi
 
-# Install BloodHound
-if ! command -v bloodhound &>/dev/null; then
-    echo "Installing BloodHound and Neo4j..."
-    sudo apt install -y bloodhound
-
-    echo "Fixing PostgreSQL collation issues and creating BloodHound database..."
-    sudo -u postgres psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION;" || true
-    sudo -u postgres psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION;" || true
-
-    if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw bloodhound; then
-        echo "Creating bloodhound database..."
-        sudo -u postgres createdb bloodhound
-    else
-        echo "BloodHound database already exists."
-    fi
-
-    sudo -u postgres psql -d bloodhound -c "GRANT ALL PRIVILEGES ON SCHEMA public TO _bloodhound;" || true
-
-    echo "Running bloodhound-setup..."
-    sudo bloodhound-setup
-else
-    echo "BloodHound is already installed."
-fi
-
-# Final reminder for BloodHound password setup
-echo ""
-echo "\ud83d\udccc BloodHound Setup Reminder:"
-echo "  \u2794 Visit http://localhost:7474 in your browser."
-echo "  \u2794 Login with 'neo4j' / 'neo4j', then set a new password."
-echo "  \u2794 Update the password in /etc/bhapi/bhapi.json accordingly."
-echo ""
 
 # Self-delete script after execution
 if [ -f "$SCRIPT_PATH" ]; then
-    echo "\ud83e\uddf9 Cleaning up: Deleting script $SCRIPT_PATH..."
+    echo "Cleaning up: Deleting script $SCRIPT_PATH..."
     rm -- "$SCRIPT_PATH"
 fi
 
-echo "\u2705 Setup complete! Logs saved at $LOGFILE."
+echo "Setup complete! Logs saved at $LOGFILE."
