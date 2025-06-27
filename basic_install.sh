@@ -14,6 +14,10 @@ if ! echo $PATH | grep -q "$HOME/go/bin"; then
     export PATH="$HOME/go/bin:$PATH"
 fi
 
+# Ensure PostgreSQL is running
+echo "Ensuring PostgreSQL is running..."
+sudo systemctl start postgresql || sudo service postgresql start
+
 # Fix PostgreSQL collation version issues
 echo "Fixing PostgreSQL collation version issues..."
 sudo -u postgres psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION;" || true
@@ -70,20 +74,10 @@ BUG_BOUNTY_DIR="/home/kali/Desktop/Tools/Bug Bounty"
 mkdir -p "$BUG_BOUNTY_DIR"
 cd "$BUG_BOUNTY_DIR"
 
-# Install Nuclei
+# Install Nuclei via apt
 if ! command -v nuclei &>/dev/null; then
-    echo "Installing Nuclei..."
-    if [ -d "nuclei" ] && [ -d "nuclei/cmd/nuclei" ]; then
-        echo "nuclei directory already exists. Skipping clone."
-    else
-        rm -rf nuclei
-        git clone https://github.com/projectdiscovery/nuclei.git
-    fi
-    cd nuclei/cmd/nuclei
-    go build
-    sudo mv nuclei /usr/local/bin/
-    nuclei -version
-    cd "$BUG_BOUNTY_DIR"
+    echo "Installing Nuclei via apt..."
+    sudo apt install -y nuclei
 else
     echo "Nuclei is already installed."
 fi
