@@ -55,6 +55,7 @@ if [ ! -f "$COMMON_PY" ]; then
     echo "Installing help..."
     wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/help
     sudo chmod +x help
+    dos2unix help
     sudo mv help "$COMMON_PY"
 else
     echo "help is already installed."
