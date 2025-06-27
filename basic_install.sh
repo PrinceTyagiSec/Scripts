@@ -49,15 +49,15 @@ wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/RCE
 wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/shell.aspx
 wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/shell.php
 
-# Install common.py
-COMMON_PY="/usr/bin/common.py"
+# Install help
+COMMON_PY="/usr/bin/help"
 if [ ! -f "$COMMON_PY" ]; then
-    echo "Installing common.py..."
-    wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/common.py
-    sudo chmod +x common.py
-    sudo mv common.py "$COMMON_PY"
+    echo "Installing help..."
+    wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/help
+    sudo chmod +x help
+    sudo mv help "$COMMON_PY"
 else
-    echo "common.py is already installed."
+    echo "help is already installed."
 fi
 
 # Set up Bug Bounty tools directory
