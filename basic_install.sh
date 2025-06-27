@@ -1,14 +1,25 @@
 #!/bin/bash
+set -euo pipefail
 
 # Enable logging
 LOGFILE="/home/kali/Desktop/setup.log"
-exec > >(tee -i $LOGFILE) 2>&1
-exec 2>&1
+exec > >(tee -i "$LOGFILE") 2>&1
 
 echo "Starting setup process..."
 
+# Ensure ~/go/bin is in PATH
+if ! echo $PATH | grep -q "$HOME/go/bin"; then
+    echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc
+    export PATH="$HOME/go/bin:$PATH"
+fi
+
+# Fix PostgreSQL collation version issues
+echo "Fixing PostgreSQL collation version issues..."
+sudo -u postgres psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION;" 2>/dev/null || true
+sudo -u postgres psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION;" 2>/dev/null || true
+
 # Check for Go installation
-if ! command -v go &> /dev/null; then
+if ! command -v go &>/dev/null; then
     echo "Go not found. Installing Go..."
     sudo apt install -y golang
 else
@@ -21,21 +32,21 @@ sudo apt update
 sudo apt install -y seclists steghide pspy enum4linux zaproxy stegcracker peass rubygems amass openvpn
 
 # Install RubyGem Tool
-echo "Installing haiti-hash gem..."
-if ! gem list -i haiti-hash; then
-    sudo gem install haiti-hash
+echo "Installing hashid gem..."
+if ! gem list -i hashid; then
+    sudo gem install hashid
 else
-    echo "haiti-hash gem is already installed."
+    echo "hashid gem is already installed."
 fi
 
 # Set up CTF tools directory
 CTF_DIR="/home/kali/Desktop/Tools/CTF"
-mkdir -p $CTF_DIR
-cd $CTF_DIR
+mkdir -p "$CTF_DIR"
+cd "$CTF_DIR"
 
 # Download CTF scripts
 echo "Downloading CTF scripts..."
-wget -q https://linpeas.sh -O linpeas.sh
+wget -q https://github.com/peass-ng/PEASS-ng/releases/download/20250601-88c7a0f6/linpeas.sh -O linpeas.sh
 wget -q https://github.com/DominicBreuker/pspy/releases/download/v1.2.1/pspy32
 wget -q https://github.com/DominicBreuker/pspy/releases/download/v1.2.1/pspy64
 wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/RCE.php
@@ -44,11 +55,11 @@ wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/she
 
 # Install common.py
 COMMON_PY="/usr/bin/common.py"
-if [ ! -f $COMMON_PY ]; then
+if [ ! -f "$COMMON_PY" ]; then
     echo "Installing common.py..."
     wget -q https://raw.githubusercontent.com/prince2313/Scripts/refs/heads/main/common.py
     sudo chmod +x common.py
-    sudo mv common.py $COMMON_PY
+    sudo mv common.py "$COMMON_PY"
 else
     echo "common.py is already installed."
 fi
@@ -85,7 +96,7 @@ else
 fi
 
 # Install gauplus
-if [ ! -f "$HOME/go/bin/gauplus" ]; then
+if ! command -v gauplus &>/dev/null; then
     echo "Installing gauplus..."
     go install github.com/bp0lr/gauplus@latest
 else
@@ -104,7 +115,7 @@ else
 fi
 
 # Install httpx
-if [ ! -f "$HOME/go/bin/httpx" ]; then
+if ! command -v httpx &>/dev/null; then
     echo "Installing httpx..."
     go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
 else
@@ -136,4 +147,34 @@ else
     echo "NucleiScanner is already installed."
 fi
 
-echo "Setup complete! Logs available at $LOGFILE."
+# Install Kerbrute
+if [ ! -f "/usr/local/bin/kerbrute" ]; then
+    echo "Installing Kerbrute..."
+    cd /tmp
+    wget -q https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_linux_amd64 -O kerbrute
+    chmod +x kerbrute
+    sudo mv kerbrute /usr/local/bin/
+    echo "Kerbrute installed successfully."
+else
+    echo "Kerbrute is already installed."
+fi
+
+# Install BloodHound
+if ! command -v bloodhound &>/dev/null; then
+    echo "Installing BloodHound and Neo4j..."
+    sudo apt install -y bloodhound
+    echo "Running bloodhound-setup..."
+    sudo bloodhound-setup
+else
+    echo "BloodHound is already installed."
+fi
+
+# Final reminder for BloodHound password setup
+echo ""
+echo "📌 BloodHound Setup Reminder:"
+echo "  ➤ Visit http://localhost:7474 in your browser."
+echo "  ➤ Login with 'neo4j' / 'neo4j', then set a new password."
+echo "  ➤ Update the password in /etc/bhapi/bhapi.json accordingly."
+echo ""
+
+echo "✅ Setup complete! Logs saved at $LOGFILE."
