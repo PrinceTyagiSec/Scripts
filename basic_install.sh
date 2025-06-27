@@ -70,9 +70,13 @@ mkdir -p "$BUG_BOUNTY_DIR"
 cd "$BUG_BOUNTY_DIR"
 
 # Install Nuclei
-if [ ! -f "/usr/local/bin/nuclei" ]; then
+if ! command -v nuclei &>/dev/null; then
     echo "Installing Nuclei..."
-    git clone https://github.com/projectdiscovery/nuclei.git
+    if [ -d "nuclei" ]; then
+        echo "nuclei directory already exists. Skipping clone."
+    else
+        git clone https://github.com/projectdiscovery/nuclei.git
+    fi
     cd nuclei/cmd/nuclei
     go build
     sudo mv nuclei /usr/local/bin/
@@ -81,6 +85,7 @@ if [ ! -f "/usr/local/bin/nuclei" ]; then
 else
     echo "Nuclei is already installed."
 fi
+
 
 # Install Subfinder
 if [ ! -f "/usr/local/bin/subfinder" ]; then
