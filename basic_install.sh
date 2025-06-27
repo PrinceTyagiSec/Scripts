@@ -5,6 +5,7 @@ set -euo pipefail
 LOGFILE="/home/kali/Desktop/setup.log"
 exec > >(tee -i "$LOGFILE") 2>&1
 
+SCRIPT_PATH=$(realpath "$0")
 echo "Starting setup process..."
 
 # Ensure ~/go/bin is in PATH
@@ -15,8 +16,8 @@ fi
 
 # Fix PostgreSQL collation version issues
 echo "Fixing PostgreSQL collation version issues..."
-sudo -u postgres psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION;" 2>/dev/null || true
-sudo -u postgres psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION;" 2>/dev/null || true
+sudo -u postgres psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION;" || true
+sudo -u postgres psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION;" || true
 
 # Check for Go installation
 if ! command -v go &>/dev/null; then
@@ -72,9 +73,10 @@ cd "$BUG_BOUNTY_DIR"
 # Install Nuclei
 if ! command -v nuclei &>/dev/null; then
     echo "Installing Nuclei..."
-    if [ -d "nuclei" ]; then
+    if [ -d "nuclei" ] && [ -d "nuclei/cmd/nuclei" ]; then
         echo "nuclei directory already exists. Skipping clone."
     else
+        rm -rf nuclei
         git clone https://github.com/projectdiscovery/nuclei.git
     fi
     cd nuclei/cmd/nuclei
@@ -86,9 +88,8 @@ else
     echo "Nuclei is already installed."
 fi
 
-
 # Install Subfinder
-if [ ! -f "/usr/local/bin/subfinder" ]; then
+if ! command -v subfinder &>/dev/null; then
     echo "Installing Subfinder..."
     git clone https://github.com/projectdiscovery/subfinder.git
     cd subfinder/v2/cmd/subfinder
@@ -153,7 +154,7 @@ else
 fi
 
 # Install Kerbrute
-if [ ! -f "/usr/local/bin/kerbrute" ]; then
+if ! command -v kerbrute &>/dev/null; then
     echo "Installing Kerbrute..."
     cd /tmp
     wget -q https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_linux_amd64 -O kerbrute
@@ -168,6 +169,20 @@ fi
 if ! command -v bloodhound &>/dev/null; then
     echo "Installing BloodHound and Neo4j..."
     sudo apt install -y bloodhound
+
+    echo "Fixing PostgreSQL collation issues and creating BloodHound database..."
+    sudo -u postgres psql -c "ALTER DATABASE template1 REFRESH COLLATION VERSION;" || true
+    sudo -u postgres psql -c "ALTER DATABASE postgres REFRESH COLLATION VERSION;" || true
+
+    if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw bloodhound; then
+        echo "Creating bloodhound database..."
+        sudo -u postgres createdb bloodhound
+    else
+        echo "BloodHound database already exists."
+    fi
+
+    sudo -u postgres psql -d bloodhound -c "GRANT ALL PRIVILEGES ON SCHEMA public TO _bloodhound;" || true
+
     echo "Running bloodhound-setup..."
     sudo bloodhound-setup
 else
@@ -176,10 +191,16 @@ fi
 
 # Final reminder for BloodHound password setup
 echo ""
-echo "📌 BloodHound Setup Reminder:"
-echo "  ➤ Visit http://localhost:7474 in your browser."
-echo "  ➤ Login with 'neo4j' / 'neo4j', then set a new password."
-echo "  ➤ Update the password in /etc/bhapi/bhapi.json accordingly."
+echo "\ud83d\udccc BloodHound Setup Reminder:"
+echo "  \u2794 Visit http://localhost:7474 in your browser."
+echo "  \u2794 Login with 'neo4j' / 'neo4j', then set a new password."
+echo "  \u2794 Update the password in /etc/bhapi/bhapi.json accordingly."
 echo ""
 
-echo "✅ Setup complete! Logs saved at $LOGFILE."
+# Self-delete script after execution
+if [ -f "$SCRIPT_PATH" ]; then
+    echo "\ud83e\uddf9 Cleaning up: Deleting script $SCRIPT_PATH..."
+    rm -- "$SCRIPT_PATH"
+fi
+
+echo "\u2705 Setup complete! Logs saved at $LOGFILE."
