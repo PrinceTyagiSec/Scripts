@@ -6,7 +6,7 @@ print(
 =======================
 
 1. NMAP Scanning:
-
+ 
    nmap -Pn <IP> -oX NMAP.xml
    nmap -p <PORTS> -sV <IP> -oX NMAP.xml
    nmap -p- <IP> -oX NMAP.xml
