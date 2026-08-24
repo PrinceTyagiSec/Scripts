@@ -78,7 +78,7 @@ fi
 if ! command -v subfinder &>/dev/null; then
     echo "Installing Subfinder..."
     git clone https://github.com/projectdiscovery/subfinder.git
-    cd subfinder/v2/cmd/subfinder
+    cd subfinder/cmd/subfinder
     go build
     sudo mv subfinder /usr/local/bin/
     subfinder -version
