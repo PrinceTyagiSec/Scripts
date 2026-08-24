@@ -95,12 +95,22 @@ else
     echo "gauplus is already installed."
 fi
 
+# Install Python virtual environment support
+echo "Installing Python venv support..."
+sudo apt install -y python3-venv python3-full
+
 # Install ParamSpider
 if [ ! -d "ParamSpider" ]; then
     echo "Installing ParamSpider..."
     git clone https://github.com/0xKayala/ParamSpider
     cd ParamSpider
-    pip3 install -r requirements.txt
+    echo "Creating ParamSpider virtual environment..."
+    python3 -m venv .venv
+
+    echo "Installing ParamSpider Python dependencies..."
+    .venv/bin/python -m pip install --upgrade pip
+    .venv/bin/python -m pip install -r requirements.txt
+
     cd "$BUG_BOUNTY_DIR"
 else
     echo "ParamSpider is already installed."
@@ -113,6 +123,12 @@ if ! command -v httpx &>/dev/null; then
 else
     echo "httpx is already installed."
 fi
+sudo tee /usr/local/bin/paramspider > /dev/null <<EOF
+#!/bin/bash
+exec "$BUG_BOUNTY_DIR/ParamSpider/.venv/bin/python" "$BUG_BOUNTY_DIR/ParamSpider/paramspider.py" "\$@"
+EOF
+
+sudo chmod +x /usr/local/bin/paramspider
 
 # Install Nuclei Templates
 TEMPLATE_DIR="$BUG_BOUNTY_DIR/nuclei-templates"
@@ -145,6 +161,7 @@ if ! command -v kerbrute &>/dev/null; then
     cd /tmp
     wget -q https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_linux_amd64 -O kerbrute
     chmod +x kerbrute
+    sudo mv kerbrute /usr/local/bin/kerbrute
     echo "Kerbrute installed successfully."
 else
     echo "Kerbrute is already installed."
