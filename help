@@ -87,7 +87,9 @@ print(
    6. sudo -l
    7. netstat -tunlp
    8. netstat -antup
-   9. ss -tnlp
+   9. echo $PATH
+   10. Check for kernel exploits
+   11. ss -tnlp
 
    **IMPORTANT Files AND Directories:**
    /etc/passwd
